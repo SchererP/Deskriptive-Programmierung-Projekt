@@ -85,10 +85,10 @@ getSubsquare : Sudokufeld -> Int -> List (Maybe Int)
 getSubsquare feld unterfeld =
     let
         row =
-            List.map ((*) ((unterfeld - 1) // 3 + 1)) [1..3]
+            List.map ((*) ((unterfeld - 1) // 3 + 1)) [1, 2, 3, 1, 2, 3, 1, 2, 3]
 
         column =
-            List.map ((*) ((unterfeld - 1) % 3 + 1)) [1..3]
+            List.map ((*) ((unterfeld - 1) % 3 + 1)) [1, 1, 1, 2, 2 , 2, 3, 3, 3]
     in
         let
             poses =
@@ -130,6 +130,3 @@ emptyField : Sudokufeld
 emptyField =
     Array.repeat 9 (Array.repeat 9 ( Nothing, False ))
 -- Erstellt ein leeres Feld, bei dem kein Schreibschutz aktiviert ist
-
-toHMTL : Sudokufeld -> HTML
-toHTML = 
