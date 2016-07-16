@@ -1,4 +1,5 @@
 module Operationen exposing (..)
+
 import Array exposing (..)
 import List
 
@@ -13,12 +14,12 @@ type alias Sudokufeld =
 
 getField : Sudokufeld -> Pos -> Maybe Int
 getField feld pos =
-    case get (fst pos-1) feld of
+    case get (fst pos - 1) feld of
         Nothing ->
             Nothing
 
         Just row ->
-            case get (snd pos-1) row of
+            case get (snd pos - 1) row of
                 Nothing ->
                     Nothing
 
@@ -39,14 +40,14 @@ setField feld pos zahl =
             False ->
                 let
                     row =
-                        case get (fst pos-1) feld of
+                        case get (fst pos - 1) feld of
                             Just row' ->
-                                set (snd pos-1) ( modzahl, False ) row'
+                                set (snd pos - 1) ( modzahl, False ) row'
 
                             Nothing ->
                                 empty
                 in
-                    set (fst pos-1) row feld
+                    set (fst pos - 1) row feld
 
             True ->
                 feld
@@ -57,7 +58,7 @@ getColumn feld spalte =
     let
         specialGet =
             \x y ->
-                case get (x-1) y of
+                case get (x - 1) y of
                     Nothing ->
                         ( Just 0, False )
 
@@ -71,7 +72,7 @@ getRow : Sudokufeld -> Int -> List (Maybe Int)
 getRow feld zeile =
     let
         zeilenbool =
-            case get (zeile-1) feld of
+            case get (zeile - 1) feld of
                 Nothing ->
                     []
 
@@ -85,10 +86,10 @@ getSubsquare : Sudokufeld -> Int -> List (Maybe Int)
 getSubsquare feld unterfeld =
     let
         row =
-            List.map ((+) (((unterfeld - 1) // 3)*3)) [1, 2, 3, 1, 2, 3, 1, 2, 3]
+            List.map ((+) (((unterfeld - 1) // 3) * 3)) [ 1, 2, 3, 1, 2, 3, 1, 2, 3 ]
 
         column =
-            List.map ((+) (((unterfeld - 1) % 3)*3)) [1, 1, 1, 2, 2 , 2, 3, 3, 3]
+            List.map ((+) (((unterfeld - 1) % 3) * 3)) [ 1, 1, 1, 2, 2, 2, 3, 3, 3 ]
     in
         let
             poses =
@@ -101,24 +102,24 @@ setProtected : Sudokufeld -> Pos -> Sudokufeld
 setProtected feld pos =
     let
         row =
-            case get (fst pos-1) feld of
+            case get (fst pos - 1) feld of
                 Just row' ->
-                    set (snd pos-1) ( getField feld pos, True ) row'
+                    set (snd pos - 1) ( getField feld pos, True ) row'
 
                 Nothing ->
                     empty
     in
-        set (fst pos-1) row feld
+        set (fst pos - 1) row feld
 
 
 isProtected : Sudokufeld -> Pos -> Bool
 isProtected feld pos =
-    case get (fst pos-1) feld of
+    case get (fst pos - 1) feld of
         Nothing ->
             False
 
         Just row ->
-            case get (snd pos-1) row of
+            case get (snd pos - 1) row of
                 Nothing ->
                     False
 
@@ -129,4 +130,7 @@ isProtected feld pos =
 emptyField : Sudokufeld
 emptyField =
     Array.repeat 9 (Array.repeat 9 ( Nothing, False ))
+
+
+
 -- Erstellt ein leeres Feld, bei dem kein Schreibschutz aktiviert ist
