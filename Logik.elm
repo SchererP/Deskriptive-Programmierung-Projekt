@@ -2,7 +2,7 @@ module Logik exposing (..)
 
 import Operationen exposing (..)
 import Arithmetic exposing (primesBelow)
-import List exposing (foldr, map, head, drop, member, filter)
+import List exposing (foldr, map, head, drop, member, filter, length)
 
 
 generiereFeld : int -> Sudokufeld
@@ -143,3 +143,20 @@ moeglicheZiffern feld pos =
 
 
 -- Liefert eine Liste mit möglichen Einträgen
+
+
+berechneTipp : Sudokufeld -> Pos -> Maybe (Pos, Int)
+berechneTipp feld startpos =
+    if fst startpos < 10 && snd startpos < 10 then
+        let ziffernliste = moeglicheZiffern feld startpos
+        in
+            case length ziffernliste of
+                0 -> Nothing -- Wenn ein Feld nicht belegt werden kann, ist das Spiel so nicht lösbar
+                1 -> Just (startpos, case head ziffernliste of
+                                          Just x -> x
+                                          Nothing -> 0) -- Rückgabe des eindeutig lösbaren Felds und der entsprechende Eintrag, der Nothing-Fall tritt nie ein
+                _ -> berechneTipp feld (fst startpos + 1, snd startpos +1) -- Mehrere Einträge gültig, iteriere über das Feld
+    else
+        Nothing -- Das gesamte Feld wurde untersucht, aber es gibt keine eindeutig lösbaren Felder
+
+-- Berechnet eine Position und einen Wert für einen eindeutig lösbaren Eintrag
