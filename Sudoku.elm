@@ -4,6 +4,8 @@ import Logik exposing (..)
 import Operationen exposing (..)
 import Html exposing (..)
 import Html.App exposing (program)
+import Html.Attributes exposing (style)
+import Time exposing (Time, second)
 
 
 --import TimeTravel.Html.App exposing (program)
@@ -48,14 +50,19 @@ view model =
           --Anpassung des Headers im Browser
         , h1 [] [ text "Sudokuspiel" ]
           --Titel des Spiels
-        , table [] [ tr [] [ td [] [ text "Modus" ] ], tr [] [ td [] [ select [] [ option [ onClick (Moduswechsel True) ] [ text "Mit Hilfestellung" ], option [ onClick (Moduswechsel False) ] [ text "Ohne Hilfestellung" ] ] ] ] ]
+        , table [] [ tr [] [ td [] [ text "Modus:" ] ], tr [] [ td [] [ select [] [ option [ onClick (Moduswechsel True) ] [ text "Mit Hilfestellung" ], option [ onClick (Moduswechsel False) ] [ text "Ohne Hilfestellung" ] ] ] ] ]
           --Menü zur Modusauswahl
-        , druckeSpielfeld model.spielfeld
+        , br [] [text "Warum verschwindet dieser Text?"]
+        , druckeSpielfeld model.spielfeld model.markiert
           --Ausgabe des Spielfelds
+        , br [] [text "Warum verschwindet dieser Text?"]
         , druckeZahlenfeld model.spielfeld model.markiert model.modus
           --Auswahlfeld der einzufügenden Ziffer
+        , br [] [text "Warum verschwindet dieser Text?"]
         , button [ onClick Abschluss ] [ text "Abschlusskontrolle" ]
           --Anstoß der Kontrollroutine
+        , br [] [text "Warum verschwindet dieser Text?"]
+        , br [] [text "Warum verschwindet dieser Text?"] --Dummyelement, um einen Zeilenumbruch zu realisieren
         , case model.abschluss of
             --Ausgabe des Kontrollergebnisses
             Nothing ->
@@ -69,8 +76,10 @@ view model =
         , h2 [] [ text "Programmerklärungen:" ]
           --Hinweistexte für die auszuwählenden Menüs
         , h3 [] [ text "Modus" ]
-        , p [] [ text "Das Spiel bietet zwei Modi an: mit Hilfestellung oder ohne. Mit Hilfestellung werden alle für das ausgewählte Feld ungültigen Ziffern ausgegraut und ohne Hilfestellung alle Ziffern immer zur Auswahl gestellt." ]
-        , footer [] [ text "Eine Implementierung von Jonas Barteldrees und Paul Scherer", text "Projekt im Rahmen der Vorlesung Deskriptive Programmierung" ]
+        , p [] [ text "Das Spiel bietet zwei Modi an: mit Hilfestellung oder ohne. Mit Hilfestellung werden alle für das ausgewählte Feld ungültigen Ziffern ausgeblendet und ohne Hilfestellung alle Ziffern immer zur Auswahl gestellt." ]
+        , br [] [text "Warum verschwindet dieser Text?"]
+        , br [] [text "Warum verschwindet dieser Text?"]
+        , footer [] [ text "Ein Projekt von Jonas Barteldrees und Paul Scherer im Rahmen der Vorlesung Deskriptive Programmierung im Sommersemester 2016"]
           --Fußzeile mit Autorenangabe
         ]
 
@@ -95,11 +104,11 @@ druckeZahlenfeld feld pos modus =
             ]
 
 
-druckeSpielfeld : Sudokufeld -> Html Msg
-druckeSpielfeld feld =
+druckeSpielfeld : Sudokufeld -> Pos -> Html Msg
+druckeSpielfeld feld markiert =
     let
         toButton =
-            \pos -> td [] [ button [ onClick (Feldauswahl pos) ] [ text (toString (getField feld pos)) ] ]
+            \pos -> td [ style [if pos == markiert then ("backgroundColor", "blue") else ("backgroundColor", "white"), ("border", "50"), ("borderColor", "black")]] [ button [ onClick (Feldauswahl pos)] [ druckeZahl feld pos ]]
     in
         let
             toButtonRow =
@@ -107,6 +116,10 @@ druckeSpielfeld feld =
         in
             table [] (map toButtonRow [1..9])
 
+druckeZahl : Sudokufeld -> Pos -> Html Msg
+druckeZahl feld pos = case getField feld pos of
+                            Just i -> text (toString i)
+                            Nothing -> span [] [text "   "]
 
 update msg model =
     case msg of
@@ -124,4 +137,7 @@ update msg model =
 
 
 subscriptions model =
-    Sub.none
+    Sub.batch
+    [
+        Time.every second (\_ -> Abschluss)
+    ]
