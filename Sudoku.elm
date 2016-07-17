@@ -19,10 +19,11 @@ type Msg
     | Feldauswahl Pos
     | Zifferneingabe Int
     | Abschluss
+    | Tipp
 
 
 init =
-    ( { spielfeld = generiereFeld 1, modus = True, markiert = ( 1, 1 ), abschluss = Nothing }, Cmd.none )
+    ( { spielfeld = generiereFeld 1, modus = True, markiert = ( 1, 1 ), abschluss = Nothing, tippMoeglich = Nothing }, Cmd.none )
 
 
 main =
@@ -61,6 +62,7 @@ view model =
         , br [] [text "Warum verschwindet dieser Text?"]
         , button [ onClick Abschluss ] [ text "Abschlusskontrolle" ]
           --Anstoß der Kontrollroutine
+        , button [ onClick Tipp ] [ text "Tipp" ]
         , br [] [text "Warum verschwindet dieser Text?"]
         , br [] [text "Warum verschwindet dieser Text?"] --Dummyelement, um einen Zeilenumbruch zu realisieren
         , case model.abschluss of
@@ -77,6 +79,8 @@ view model =
           --Hinweistexte für die auszuwählenden Menüs
         , h3 [] [ text "Modus" ]
         , p [] [ text "Das Spiel bietet zwei Modi an: mit Hilfestellung oder ohne. Mit Hilfestellung werden alle für das ausgewählte Feld ungültigen Ziffern ausgeblendet und ohne Hilfestellung alle Ziffern immer zur Auswahl gestellt." ]
+        , h3 [] [text "Tipp" ]
+        , p [] [ text "Mit 'Tipp' wird ein eindeutig lösbares Feld angezeigt, sofern der aktuelle Zustand des Feldes nicht wegen falscher Belegung(en) unlösbar ist. Wird kein Eintrag verändert, so ist das Spielfeld von der aktuellen Konfiguration ausgehend nicht lösbar." ]
         , br [] [text "Warum verschwindet dieser Text?"]
         , br [] [text "Warum verschwindet dieser Text?"]
         , footer [] [ text "Ein Projekt von Jonas Barteldrees und Paul Scherer im Rahmen der Vorlesung Deskriptive Programmierung im Sommersemester 2016"]
@@ -134,6 +138,11 @@ update msg model =
 
         Moduswechsel b ->
             ( { model | modus = b }, Cmd.none )
+        Tipp ->
+            ({model | spielfeld = case berechneTipp model.spielfeld (1, 1) of
+                                        Just (pos, i) -> setField model.spielfeld pos i
+                                        Nothing -> model.spielfeld
+                                  }, Cmd.none)
 
 
 subscriptions model =
