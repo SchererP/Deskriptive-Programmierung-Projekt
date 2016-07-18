@@ -155,7 +155,9 @@ berechneTipp feld startpos =
                 1 -> Just (startpos, case head ziffernliste of
                                           Just x -> x
                                           Nothing -> 0) -- Rückgabe des eindeutig lösbaren Felds und der entsprechende Eintrag, der Nothing-Fall tritt nie ein
-                _ -> berechneTipp feld (fst startpos + 1, snd startpos +1) -- Mehrere Einträge gültig, iteriere über das Feld
+                _ -> case fst startpos of  -- Mehrere Einträge gültig, iteriere über das Feld
+                        9 -> berechneTipp feld (1, snd startpos + 1)
+                        _ -> berechneTipp feld (fst startpos + 1, snd startpos)
     else
         Nothing -- Das gesamte Feld wurde untersucht, aber es gibt keine eindeutig lösbaren Felder
 
