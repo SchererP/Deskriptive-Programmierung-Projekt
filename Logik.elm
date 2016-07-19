@@ -2,57 +2,63 @@ module Logik exposing (..)
 
 import Operationen exposing (..)
 import Arithmetic exposing (primesBelow)
-import List exposing (foldr, map, head, drop, member, filter, length)
+import List exposing (foldr, map, map2, head, drop, member, filter, length, concat, concatMap, repeat)
 
 
-generiereFeld : int -> Sudokufeld
+generiereFeld : Int -> Sudokufeld
 generiereFeld s =
     let
         definiereFeld =
             \pos zahl feld -> setProtected (setField feld pos zahl) pos
-    in
-        definiereFeld ( 1, 8 )
-            1
-            (definiereFeld ( 2, 1 )
-                4
-                (definiereFeld ( 3, 2 )
-                    2
-                    (definiereFeld ( 4, 5 )
-                        5
-                        (definiereFeld ( 4, 7 )
-                            4
-                            (definiereFeld ( 4, 9 )
-                                7
-                                (definiereFeld ( 5, 3 )
-                                    8
-                                    (definiereFeld ( 5, 7 )
-                                        3
-                                        (definiereFeld ( 6, 3 )
-                                            1
-                                            (definiereFeld ( 6, 5 )
-                                                9
-                                                (definiereFeld ( 7, 1 )
-                                                    3
-                                                    (definiereFeld ( 7, 4 )
-                                                        4
-                                                        (definiereFeld ( 7, 7 )
-                                                            2
-                                                            (definiereFeld ( 8, 2 )
-                                                                5
-                                                                (definiereFeld ( 8, 4 ) 1 (definiereFeld ( 9, 4 ) 8 (definiereFeld ( 9, 6 ) 6 emptyField)))
-                                                            )
-                                                        )
-                                                    )
-                                                )
-                                            )
-                                        )
-                                    )
-                                )
-                            )
-                        )
+        inputSudoku =
+                foldr
+                    (\poswithnumber ->
+                        if snd poswithnumber == 0 then
+                            \x -> x
+                        else
+                            definiereFeld (fst poswithnumber) (snd poswithnumber)
                     )
-                )
-            )
+                    emptyField
+        in
+            inputSudoku (map2 (,) (map2 (,) (concatMap (repeat 9) [1..9]) (concat (repeat 9 [1..9]))) (getSudokuFeld s))
+
+
+
+--Das erste map verbinded position und wert, das zweite erstellt die positionen
+
+
+getSudokuFeld : Int -> List Int
+getSudokuFeld s =
+    let
+        sudokus =
+            [ [ 0, 0, 0, 0, 0, 0, 0, 1, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 0, 4, 0, 7, 0, 0, 8, 0, 0, 0, 3, 0, 0, 0, 0, 1, 0, 9, 0, 0, 0, 0, 3, 0, 0, 4, 0, 0, 2, 0, 0, 0, 5, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 8, 0, 6, 0, 0, 0 ]
+            , [ 0, 0, 0, 0, 0, 0, 0, 1, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 0, 6, 0, 4, 0, 0, 8, 0, 0, 0, 3, 0, 0, 0, 0, 1, 0, 9, 0, 0, 0, 0, 3, 0, 0, 4, 0, 0, 2, 0, 0, 0, 5, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 8, 0, 7, 0, 0, 0 ]
+            , [ 0, 0, 0, 0, 0, 0, 0, 1, 2, 0, 0, 0, 0, 3, 5, 0, 0, 0, 0, 0, 0, 6, 0, 0, 0, 7, 0, 7, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 4, 0, 0, 8, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 4, 0, 0, 5, 0, 0, 0, 0, 6, 0, 0 ]
+            , [ 0, 0, 0, 0, 0, 0, 0, 1, 2, 0, 0, 3, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 0, 0, 0, 4, 1, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 5, 0, 0, 3, 0, 0, 7, 0, 0, 0, 0, 0, 6, 0, 0, 2, 8, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 3, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
+            , [ 0, 0, 0, 0, 0, 0, 0, 1, 2, 0, 0, 8, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 1, 2, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 7, 0, 0, 0, 6, 0, 0, 0, 0, 0, 0, 0, 5, 0, 7, 0, 0, 0, 3, 0, 0, 0, 0, 0, 6, 2, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0 ]
+            , [ 0, 0, 0, 0, 0, 0, 0, 1, 2, 0, 4, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 7, 0, 6, 0, 0, 4, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 8, 7, 5, 0, 0, 6, 0, 1, 0, 0, 0, 3, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0 ]
+            , [ 0, 0, 0, 0, 0, 0, 0, 1, 2, 0, 5, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 7, 0, 0, 6, 0, 0, 4, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 9, 2, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 5, 1, 0, 7, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0 ]
+            , [ 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 0, 0, 0, 0, 0, 0, 6, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 1, 0, 7, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 5, 0, 4, 0, 0, 0, 0, 1, 4, 0, 0, 8, 0, 0, 0, 6, 0, 0, 0, 0, 0, 0, 0 ]
+            , [ 0, 0, 0, 0, 0, 0, 0, 1, 2, 4, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 0, 0, 7, 0, 2, 0, 0, 0, 0, 0, 6, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 1, 0, 8, 0, 0, 0, 0, 1, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 7, 0, 0, 5, 0, 2, 0, 0, 0, 0, 0, 0 ]
+            , [ 0, 0, 0, 0, 0, 0, 0, 1, 2, 5, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 6, 0, 0, 1, 2, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 4, 5, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 5, 0, 0, 7, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0 ]
+            , [ 0, 0, 0, 0, 0, 0, 0, 1, 2, 7, 0, 0, 0, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 0, 0, 8, 0, 2, 0, 0, 0, 0, 0, 6, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 1, 0, 9, 0, 0, 0, 0, 1, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 8, 0, 0, 5, 0, 2, 0, 0, 0, 0, 0, 0 ]
+            , [ 0, 0, 0, 0, 0, 0, 0, 1, 2, 8, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 0, 0, 9, 0, 2, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 5, 0, 1, 0, 0, 0, 0, 1, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 9, 0, 0, 6, 0, 2, 0, 0, 0, 0, 0, 0 ]
+            , [ 0, 0, 0, 0, 0, 0, 0, 1, 2, 9, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 0, 0, 0, 0, 0, 1, 0, 0, 7, 0, 0, 0, 8, 0, 4, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 6, 0, 0, 0, 7, 0, 0, 0, 0, 3, 0, 0, 0, 5, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0 ]
+            , [ 0, 0, 0, 0, 0, 0, 0, 1, 3, 0, 0, 0, 0, 3, 0, 0, 8, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 6, 0, 0, 0, 0, 3, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 6, 0, 0, 5, 0, 0, 2, 0, 4, 0, 0, 0, 4, 0, 0, 7, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0 ]
+            , [ 0, 0, 0, 0, 0, 0, 0, 1, 3, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 7, 6, 0, 2, 0, 0, 0, 0, 8, 0, 0, 0, 4, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 7, 5, 0, 6, 0, 0, 3, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0 ]
+            , [ 0, 0, 0, 0, 0, 0, 0, 1, 3, 0, 0, 0, 5, 0, 0, 0, 7, 0, 0, 0, 0, 8, 0, 2, 0, 0, 0, 0, 0, 0, 4, 0, 0, 9, 0, 0, 1, 0, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 8, 9, 0, 0, 0, 0, 0, 5, 0, 0, 4, 0, 0, 0, 0, 6, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0 ]
+            , [ 0, 0, 0, 0, 0, 0, 0, 1, 3, 0, 0, 0, 7, 0, 0, 0, 6, 0, 0, 0, 0, 5, 0, 8, 0, 0, 0, 0, 0, 0, 4, 0, 0, 8, 0, 0, 1, 0, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 7, 4, 0, 0, 0, 0, 0, 5, 0, 0, 2, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0 ]
+            , [ 0, 0, 0, 0, 0, 0, 0, 1, 3, 0, 0, 0, 7, 0, 0, 0, 6, 0, 0, 0, 0, 5, 0, 9, 0, 0, 0, 0, 0, 0, 4, 0, 0, 9, 0, 0, 1, 0, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 7, 4, 0, 0, 0, 0, 0, 5, 0, 0, 8, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0 ]
+            , [ 0, 0, 0, 0, 0, 0, 0, 1, 3, 0, 0, 0, 8, 0, 0, 0, 7, 0, 0, 0, 0, 5, 0, 2, 0, 0, 0, 0, 0, 0, 4, 0, 0, 9, 0, 0, 1, 0, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 8, 9, 0, 0, 0, 0, 0, 5, 0, 0, 4, 0, 0, 0, 0, 6, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0 ]
+            , [ 0, 0, 0, 0, 0, 0, 0, 1, 3, 0, 2, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 3, 0, 0, 0, 0, 7, 0, 0, 0, 0, 8, 0, 2, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 4, 0, 5, 0, 0, 6, 7, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0 ]
+            ]
+    in
+        case head (drop (s - 1) sudokus) of
+            Nothing ->
+                [ 0, 0, 0, 0, 0, 0, 0, 1, 3, 0, 4, 0, 0, 0, 0, 0, 8, 0, 2, 0, 0, 0, 6, 0, 0, 0, 0, 6, 0, 9, 0, 0, 0, 4, 0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 3, 0, 1, 0, 0, 5, 0, 0, 0, 0, 0, 0, 4, 0, 7, 0, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
+
+            Just x ->
+                x
 
 
 
@@ -111,7 +117,7 @@ disjunkteListe x =
                     Nothing ->
                         0
     in
-        case foldr foldfunction 0 x of
+        case foldr foldfunction 1 x of
             0 ->
                 Nothing
 
@@ -145,20 +151,58 @@ moeglicheZiffern feld pos =
 -- Liefert eine Liste mit möglichen Einträgen
 
 
-berechneTipp : Sudokufeld -> Pos -> Maybe (Pos, Int)
+berechneTipp : Sudokufeld -> Pos -> Maybe ( Pos, Int )
+
+
+
+-- Schlägt fehl wenn kein einfach eindeutiges Feld forliegt, momentan mehr wie eine auto verfollständigung.
+
+
 berechneTipp feld startpos =
     if fst startpos < 10 && snd startpos < 10 then
-        let ziffernliste = moeglicheZiffern feld startpos
+        let
+            ziffernliste =
+                moeglicheZiffern feld startpos
         in
-            case length ziffernliste of
-                0 -> Nothing -- Wenn ein Feld nicht belegt werden kann, ist das Spiel so nicht lösbar
-                1 -> Just (startpos, case head ziffernliste of
-                                          Just x -> x
-                                          Nothing -> 0) -- Rückgabe des eindeutig lösbaren Felds und der entsprechende Eintrag, der Nothing-Fall tritt nie ein
-                _ -> case fst startpos of  -- Mehrere Einträge gültig, iteriere über das Feld
-                        9 -> berechneTipp feld (1, snd startpos + 1)
-                        _ -> berechneTipp feld (fst startpos + 1, snd startpos)
-    else
-        Nothing -- Das gesamte Feld wurde untersucht, aber es gibt keine eindeutig lösbaren Felder
+          case getField feld startpos of
 
+              Nothing ->
+                  case length ziffernliste of
+                      0 -> -- Wenn ein Feld nicht belegt werden kann, und dieses ist nicht bereits gefüllt, ist das Spiel so nicht lösbar
+                          Nothing
+                      1 ->
+                          Just
+                              ( startpos
+                              , case head ziffernliste of
+                                  Just x ->
+                                      x
+
+                                  Nothing -> --Da length 1 zurückgab, kann dies nicht passieren, aber benötigt um head zu benutzen.
+                                      0
+                              )
+
+                      -- Rückgabe des eindeutig lösbaren Felds und der entsprechende Eintrag, der Nothing-Fall tritt nie ein
+                      _ ->
+                          case fst startpos of
+                              -- Mehrere Einträge gültig, iteriere über das Feld
+                              9 ->
+                                  berechneTipp feld ( 1, snd startpos + 1 )
+
+                              _ ->
+                                  berechneTipp feld ( fst startpos + 1, snd startpos )
+
+              Just _ ->
+                  case fst startpos of
+                      -- Einzelnes Feld gefüllt, iteriere über das Sudokufeld
+                      9 ->
+                          berechneTipp feld ( 1, snd startpos + 1 )
+
+                      _ ->
+                          berechneTipp feld ( fst startpos + 1, snd startpos )
+    else
+        Nothing
+
+
+
+-- Das gesamte Feld wurde untersucht, aber es gibt keine eindeutig lösbaren Felder
 -- Berechnet eine Position und einen Wert für einen eindeutig lösbaren Eintrag
