@@ -23,9 +23,12 @@ type Msg
     | NeuesFeld
     | WaehleFeld Int
     | SetzeAutofill (Maybe (Pos, Int))
+    | LoeseFeld
+    | Loesungseintragung (Maybe Sudokufeld)
+    | LoesungsExistenz
 
 init =
-    ( { spielfeld = generiereFeld 1, modus = True, markiert = ( 1, 1 ), abschluss = Nothing, autofill = Nothing }, Cmd.none )
+    ( { spielfeld = generiereFeld 1, modus = True, markiert = ( 1, 1 ), abschluss = Nothing, autofill = Nothing, loesungMoeglich = False, loesungEingetragen = False }, Cmd.none )
 
 
 main =
@@ -38,7 +41,7 @@ main =
 
 
 type alias Model =
-    { spielfeld : Sudokufeld, modus : Bool, markiert : Pos, abschluss : Maybe Bool, autofill : Maybe Bool }
+    { spielfeld : Sudokufeld, modus : Bool, markiert : Pos, abschluss : Maybe Bool, autofill : Maybe Bool, loesungMoeglich : Bool, loesungEingetragen : Bool }
 
 
 
@@ -56,6 +59,10 @@ view model =
         , table [] [ tr [] [ td [] [ text "Modus:" ] ], tr [] [ td [] [ select [] [ option [ onClick (Moduswechsel True) ] [ text "Mit Hilfestellung" ], option [ onClick (Moduswechsel False) ] [ text "Ohne Hilfestellung" ] ] ], td [] [button [ onClick NeuesFeld ] [ text "Neues Feld" ]] ] ]
           --Menü zur Modusauswahl
         , br [] [text "Warum verschwindet dieser Text?"]
+        , case model.loesungEingetragen of
+              False -> text ""
+              True -> text "Die Lösung lautet:"
+          --Angabe, ob die Lösung angezeigt wird oder das selbst bearbeitete Feld
         , druckeSpielfeld model.spielfeld model.markiert
           --Ausgabe des Spielfelds
         , br [] [text "Warum verschwindet dieser Text?"]
@@ -65,6 +72,7 @@ view model =
         , button [ onClick Abschluss ] [ text "Abschlusskontrolle" ]
           --Anstoß der Kontrollroutine
         , button [ onClick Tipp ] [ text "Autofüllen" ]
+        , button [ onClick LoeseFeld ] [text "Lösung"]
         , br [] [text "Warum verschwindet dieser Text?"]
         , br [] [text "Warum verschwindet dieser Text?"] --Dummyelement, um einen Zeilenumbruch zu realisieren
         , case model.abschluss of
@@ -85,12 +93,19 @@ view model =
               text "Es wurde ein Feld automatisch gefüllt."
             Just False ->
               text "Es wurde kein automatisch füllbares Feld gefunden."
+        , br [] [text "Leerzeile"]
+        , br [] [text "Leerzeile"]
+        , case model.loesungMoeglich of
+              False -> text "Auf Grundlage der aktuellen Konfiguration kann keine Lösung berechnet werden."
+              True -> text "Auf Grundlage der aktuellen Konfiguration kann eine Lösung berechnet werden."
         , h2 [] [ text "Programmerklärungen:" ]
           --Hinweistexte für die auszuwählenden Menüs
         , h3 [] [ text "Modus" ]
         , p [] [ text "Das Spiel bietet zwei Modi an: mit Hilfestellung oder ohne. Mit Hilfestellung werden alle für das ausgewählte Feld ungültigen Ziffern ausgeblendet und ohne Hilfestellung alle Ziffern immer zur Auswahl gestellt." ]
         , h3 [] [text "Autofüllen" ]
         , p [] [ text "Mit 'Autofüllen' wird ein eindeutig lösbares Feld angezeigt, sofern der aktuelle Zustand des Feldes nicht wegen falscher Belegung(en) unlösbar ist. Wird kein Eintrag verändert, so ist kein direkt eindeutiges Feld vorhanden oder das Spielfeld ist nicht mehr lösbar." ]
+        , h3 [] [text "Lösung"]
+        , p [] [text "Auf Wunsch wird die Lösung der aktuellen Feldkonfiguration berechnet und angezeigt. Wenn eine Lösung existiert, wird sie durch einen Titel über dem Feld markiert, anderenfalls wird eine Meldung unter dem Spielfeld angezeigt."]
         , br [] [text "Warum verschwindet dieser Text?"]
         , br [] [text "Warum verschwindet dieser Text?"]
         , footer [] [ text "Ein Projekt von Jonas Barteldrees und Paul Scherer im Rahmen der Vorlesung Deskriptive Programmierung im Sommersemester 2016"]
@@ -143,10 +158,30 @@ update msg model =
             ( { model | markiert = pos }, Cmd.none )
 
         Zifferneingabe i ->
-            ( { model | spielfeld = setField model.spielfeld model.markiert i, autofill = if (isProtected model.spielfeld model.markiert) then model.autofill else Nothing }, Cmd.none )
+            ( { model | spielfeld = setField model.spielfeld model.markiert i, autofill = if (isProtected model.spielfeld model.markiert) then model.autofill else Nothing, loesungEingetragen = False }, Cmd.none )
 
         Abschluss ->
             ( { model | abschluss = ueberpruefeFeld model.spielfeld }, Cmd.none )
+
+        LoeseFeld ->
+                  (model, generate (\_ -> Loesungseintragung (berechneLoesung model.spielfeld)) (int 0 0))
+
+        Loesungseintragung feld ->
+            let
+              loesung =
+                case feld of
+                    Nothing -> model.spielfeld
+                    Just f -> f
+            in
+              ({model | spielfeld = loesung, loesungEingetragen = if feld == Nothing then False else True}, Cmd.none)
+
+        LoesungsExistenz ->
+            let existenz =
+                  case berechneLoesung model.spielfeld of
+                       Nothing -> False
+                       Just _ -> True
+            in
+                ({model | loesungMoeglich = existenz}, Cmd.none)
 
         Moduswechsel b ->
             ( { model | modus = b }, Cmd.none )
@@ -158,16 +193,18 @@ update msg model =
                           Just (pos, i) -> setField model.spielfeld pos i
                           Nothing -> model.spielfeld
           in
-            ({model | spielfeld = newfield, autofill = if tipp == Nothing then Just False else Just True}, Cmd.none)
+            ({model | spielfeld = newfield, autofill = if tipp == Nothing then Just False else Just True, loesungEingetragen = False}, Cmd.none)
+
         NeuesFeld ->
           ( model, generate zufaelligesFeld (int 1 20))
 
         WaehleFeld i ->
-          ({model|spielfeld = generiereFeld i}, Cmd.none)
+          ({model|spielfeld = generiereFeld i, loesungEingetragen = False}, Cmd.none)
 
 
 subscriptions model =
     Sub.batch
     [
-        Time.every second (\_ -> Abschluss)
+          Time.every second (\_ -> Abschluss)
+        , Time.every second (\_ -> LoesungsExistenz)
     ]
