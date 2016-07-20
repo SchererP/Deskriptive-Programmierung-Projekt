@@ -155,7 +155,7 @@ berechneTipp : Sudokufeld -> Pos -> Maybe ( Pos, Int )
 
 
 
--- Schlägt fehl wenn kein einfach eindeutiges Feld forliegt, momentan mehr wie eine auto verfollständigung.
+-- Schlägt fehl wenn kein einfach eindeutiges Feld forliegt, momentan mehr wie eine auto vervollständigung.
 
 
 berechneTipp feld startpos =
@@ -206,3 +206,16 @@ berechneTipp feld startpos =
 
 -- Das gesamte Feld wurde untersucht, aber es gibt keine eindeutig lösbaren Felder
 -- Berechnet eine Position und einen Wert für einen eindeutig lösbaren Eintrag
+
+berechneLoesung : Sudokufeld -> Maybe Sudokufeld
+berechneLoesung feld = loeseFeld feld (1, 1)
+--Ausgabefunktion für die Lösung eines eingegenen Feldes
+
+loeseFeld : Sudokufeld -> Pos -> Maybe Sudokufeld
+loeseFeld feld pos = case getField feld pos of --Überprüfung, ob das Feld gefüllt ist
+                          Nothing -> Nothing --Hier kommt die eigentliche Logik rein
+                          Just _ ->
+                                case fst pos of
+                                --Das Feld ist bereits eingetragen und soll nicht bearbeitet werden, gehe zum nächsten Feld
+                                    9 -> loeseFeld feld (1, snd pos +1)
+                                    _ -> loeseFeld feld (fst pos +1, snd pos)
