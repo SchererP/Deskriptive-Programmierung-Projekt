@@ -127,6 +127,16 @@ isProtected feld pos =
                     snd intbool
 
 
+circularnext : Int -> Int
+circularnext x = case x of
+                  9->1
+                  _->x + 1
+
+circularprev : Int -> Int
+circularprev x = case x of
+                  1->9
+                  _->x - 1
+
 emptyField : Sudokufeld
 emptyField =
     Array.repeat 9 (Array.repeat 9 ( Nothing, False ))

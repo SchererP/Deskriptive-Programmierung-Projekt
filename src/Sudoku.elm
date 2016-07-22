@@ -6,7 +6,7 @@ import Html exposing (..)
 import Html.App exposing (program)
 import Html.Attributes exposing (style)
 import Time exposing (Time, second)
-
+import Keyboard
 
 --import TimeTravel.Html.App exposing (program)
 
@@ -38,7 +38,7 @@ main =
 
 
 type alias Model =
-    { spielfeld : Sudokufeld, modus : Bool, markiert : Pos, abschluss : Maybe Bool, autofill : Maybe Bool }
+    { spielfeld : Sudokufeld, modus : Bool, markiert : Pos, abschluss : Maybe Bool, autofill : Maybe Bool}
 
 
 
@@ -62,6 +62,7 @@ view model =
         , druckeZahlenfeld model.spielfeld model.markiert model.modus
           --Auswahlfeld der einzufügenden Ziffer
         , br [] [text "Warum verschwindet dieser Text?"]
+        , text (toString model.debugint)
         , button [ onClick Abschluss ] [ text "Abschlusskontrolle" ]
           --Anstoß der Kontrollroutine
         , button [ onClick Tipp ] [ text "Autofüllen" ]
@@ -137,6 +138,16 @@ zufaelligesFeld : Int->Msg
 zufaelligesFeld feldint=
   WaehleFeld feldint
 
+keycodeToMsg : Model -> Keyboard.KeyCode -> Msg
+--37 links, 38 hoch, 39 rechts, 40 unten
+keycodeToMsg model code = case code of
+                    37 -> Feldauswahl (fst model.markiert, circularprev(snd model.markiert))
+                    38 -> Feldauswahl (circularprev(fst model.markiert), snd model.markiert)
+                    39 -> Feldauswahl (fst model.markiert, circularnext(snd model.markiert))
+                    40 -> Feldauswahl (circularnext(fst model.markiert), snd model.markiert)
+                    _ -> Abschluss --Platzhalter
+
+
 update msg model =
     case msg of
         Feldauswahl pos ->
@@ -166,8 +177,10 @@ update msg model =
           ({model|spielfeld = generiereFeld i}, Cmd.none)
 
 
+
 subscriptions model =
     Sub.batch
     [
-        Time.every second (\_ -> Abschluss)
+          Time.every second (\_ -> Abschluss)
+        , Keyboard.presses (keycodeToMsg model)
     ]
